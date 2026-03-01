@@ -9,10 +9,15 @@ export async function onRequestPost(context) {
 
   try {
     const body = await request.text();
-
-    // Parse payload
-    let payload;
-    try { payload = JSON.parse(body); } catch { return new Response('Bad JSON', { status: 400 }); }
+let payload;
+try {
+  // GitHub sends as form-encoded OR raw JSON depending on webhook content-type setting
+  if (body.startsWith('payload=')) {
+    payload = JSON.parse(decodeURIComponent(body.slice(8)));
+  } else {
+    payload = JSON.parse(body);
+  }
+} catch { return new Response('Bad JSON', { status: 400 }); }
 
     // Only fire on pushes to main branch
     if (payload.ref && payload.ref !== 'refs/heads/main') {
