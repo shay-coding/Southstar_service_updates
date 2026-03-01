@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SouthStar — Service Updates</title>
+  <style>
+    @font-face {
+      font-family: 'Helvetica';
+      src: url('Helvetica.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    :root {
+      --bg:         #0d0d0f;
+      --surface:    #16171b;
+      --surface-2:  #1e1f25;
+      --border:     #2a2b32;
+      --accent:     #f5a623;
+      --text:       #e8e8ec;
+      --text-muted: #72737d;
+      --danger:     #e5534b;
+      --ok:         #3fb950;
+      --radius:     14px;
+      --mono:       'Courier New', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Helvetica', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 0 0 60px;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 28px 40px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .logo-block h1 {
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+    .logo-block h1 span { color: var(--accent); }
+    .logo-block p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 5px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .live-dot {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .live-dot span {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--ok);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; }
+      50%      { opacity: 0.3; }
+    }
+
+    /* ─── Notification button ─── */
+    #notify-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Helvetica', Arial, sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 8px 16px;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    #notify-btn:hover { border-color: var(--accent); background: #1e1f25; }
+    #notify-btn.subscribed { border-color: var(--ok); color: var(--ok); }
+    #notify-btn.subscribed svg { stroke: var(--ok); }
+    #notify-btn svg { width: 14px; height: 14px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    #notify-status {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 4px;
+      min-height: 16px;
+    }
+
+    main {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 40px 20px 0;
+    }
+
+    .section-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .update-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 26px 28px;
+      margin-bottom: 16px;
+      position: relative;
+      overflow: hidden;
+      animation: slideIn 0.35s ease both;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .update-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 4px;
+      background: var(--card-accent, var(--accent));
+    }
+
+    .update-card[data-severity="major"]  { --card-accent: var(--danger); }
+    .update-card[data-severity="minor"]  { --card-accent: var(--accent); }
+    .update-card[data-severity="info"]   { --card-accent: #58a6ff; }
+    .update-card[data-severity="normal"] { --card-accent: var(--ok); }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.3;
+    }
+
+    .severity-badge {
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 30px;
+      border: 1px solid currentColor;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .update-card[data-severity="major"]  .severity-badge { color: var(--danger); }
+    .update-card[data-severity="minor"]  .severity-badge { color: var(--accent); }
+    .update-card[data-severity="info"]   .severity-badge { color: #58a6ff; }
+    .update-card[data-severity="normal"] .severity-badge { color: var(--ok); }
+
+    .card-time {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: var(--mono);
+      margin-bottom: 12px;
+    }
+
+    .card-desc {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: #b0b2bc;
+      margin-bottom: 18px;
+    }
+
+    .routes-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .routes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .route-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 48px;
+      height: 32px;
+      padding: 0 12px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #fff;
+      background: #333;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 28px 0;
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    footer {
+      text-align: center;
+      padding: 40px 20px 0;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-block">
+    <h1>South<span>Star</span></h1>
+    <p>Service Status &amp; Updates</p>
+  </div>
+  <div class="header-right">
+    <div class="live-dot"><span></span>Live Status</div>
+    <div>
+      <button id="notify-btn">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span id="notify-label">Get Notifications</span>
+      </button>
+      <div id="notify-status"></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="section-label">Active Updates</div>
+
+  <div class="update-card" data-severity="major">
+    <div class="card-header">
+      <div class="card-title">14:40 Route 31</div>
+      <div class="severity-badge">Major</div>
+    </div>
+    <div class="card-time">14:40 — 15:40 · Sun 1 Mar 2026</div>
+    <div class="card-desc">
+      Due to a mechanical issue, the 14:40 route 31 from Wool is not operating this afternoon.
+    </div>
+    <div class="routes-label">Services Affected</div>
+    <div class="routes">
+      <span class="route-badge" style="background:#e6c01c;">31</span>
+    </div>
+  </div>
+
+  <div class="divider">—</div>
+
+  <div class="update-card" data-severity="major">
+    <div class="card-header">
+      <div class="card-title">15:40 Route 31</div>
+      <div class="severity-badge">Major</div>
+    </div>
+    <div class="card-time">15:40 — 16:40 · Sun 1 Mar 2026</div>
+    <div class="card-desc">
+      Due to an earlier mechanical issue, the 15:40 route 31 from Wool will be delayed by 15 minutes whilst the replecent bus is sent.
+    </div>
+    <div class="routes-label">Services Affected</div>
+    <div class="routes">
+      <span class="route-badge" style="background:#e6c01c;">31</span>
+    </div>
+  </div>
+
+  <div class="divider">—</div>
+
+    <div class="update-card" data-severity="major">
+    <div class="card-header">
+      <div class="card-title">16:40 Route 31</div>
+      <div class="severity-badge">Major</div>
+    </div>
+    <div class="card-time">16:40 — 17:40 · Sun 1 Mar 2026</div>
+    <div class="card-desc">
+      Due to an earlier mechanical issue, the 15:40 route 31 from Wool may run up to 5 minutes late.
+    </div>
+    <div class="routes-label">Services Affected</div>
+    <div class="routes">
+      <span class="route-badge" style="background:#e6c01c;">31</span>
+    </div>
+  </div>
+
+  <div class="divider">—</div>
+
+  <div class="update-card" data-severity="major">
+    <div class="card-header">
+      <div class="card-title">SouthStar Isle of Wight - Route 3/N3 Diversion</div>
+      <div class="severity-badge">Major</div>
+    </div>
+    <div class="card-time">07:00 · Mon 2 Mar 2026 Onwards</div>
+    <div class="card-desc">
+      Route 3/N3 - St Johns Road Wroxall- Closed from 07:00 on 2nd March for up to 8 weeks.
+      During this closure Route 3 TOWARDS RYDE will divert from Whiteley Bank Via Godshill Road, Victoria Avenue, High street, Church Road, Cowleaze Hill, Bonchurch Road, Leeson Hill, St Boniface Road and resume normal route at Spring Hill
+      Route 3 TOWARDS NEWPORT will divert from Spring Hill, St Boniface Road, Leeson Hill, Cowleaze Hill, Church Road, High Street, Victoria Avenue, Godshill Road to whiteley Bank to resume normal route. During the closure a shuttle bus will operate between Wroxall Church, Upper Ventnor & Ventnor Boots.
+      The first shuttle bus will leave Wroxall Church at 06:20 and the last arrival at Wroxall will be at 18:45 each day. Shuttle Bus times leaving - Wroxall Church at xx20 & xx50 each hour, Last Service to leave Wroxall at 18:20 Shuttle Bus times leaving - Ventnor Albert Street at xx03 & xx33 each hour, Last service to leave Ventnor at 18:33.
+      We apologise for any inconvenience caused
+    </div>
+    <div class="routes-label">Services Affected</div>
+    <div class="routes">
+      <span class="route-badge" style="background:#0B8643;">3</span> <span class="route-badge" style="background:#0B8643;">3X</span> <span class="route-badge" style="background:#412777;">N3</span>
+    </div>
+  </div>
+  
+</main>
+
+<footer>
+  <p>SouthStar Transport &copy; 2026 &nbsp;·&nbsp; Updates are manually maintained</p>
+</footer>
+
+<script>
+// ─── Web Push Subscription ───────────────────────────────────────────────────
+// Replace this with your VAPID public key from the setup guide
+const VAPID_PUBLIC_KEY = 'BFw_nJ4vhOq6SRNiq_7PAW1ndRjZ_lZmv1p7HPATVNWCfrIDJ4utce_DDtRZ0RHlwnR-DFiqPIjO9cebVP3gWuU';
+
+const btn    = document.getElementById('notify-btn');
+const label  = document.getElementById('notify-label');
+const status = document.getElementById('notify-status');
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64  = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw     = atob(base64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+async function checkSubscription() {
+  if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+    btn.style.display = 'none';
+    return;
+  }
+  const reg = await navigator.serviceWorker.ready;
+  const sub = await reg.pushManager.getSubscription();
+  if (sub) {
+    btn.classList.add('subscribed');
+    label.textContent = 'Notifications On';
+    status.textContent = 'You\'ll be notified of new updates';
+  }
+}
+
+async function subscribe() {
+  if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+    status.textContent = 'Your browser doesn\'t support notifications';
+    return;
+  }
+
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      status.textContent = 'Permission denied — enable in browser settings';
+      return;
+    }
+
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+
+    if (sub) {
+      // Already subscribed — unsubscribe
+      await sub.unsubscribe();
+      await fetch('/api/unsubscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sub)
+      });
+      btn.classList.remove('subscribed');
+      label.textContent = 'Get Notifications';
+      status.textContent = 'Unsubscribed';
+      return;
+    }
+
+    sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+    });
+
+    const res = await fetch('/api/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(sub)
+    });
+
+    if (res.ok) {
+      btn.classList.add('subscribed');
+      label.textContent = 'Notifications On';
+      status.textContent = 'You\'ll be notified of new updates';
+    } else {
+      status.textContent = 'Something went wrong — try again';
+    }
+  } catch (e) {
+    console.error(e);
+    status.textContent = 'Error: ' + e.message;
+  }
+}
+
+btn.addEventListener('click', subscribe);
+
+navigator.serviceWorker.register('/sw.js').then(() => checkSubscription());
+</script>
+
+</body>
+</html>
