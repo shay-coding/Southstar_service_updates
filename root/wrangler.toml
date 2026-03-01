@@ -1,2 +1,12 @@
 name = "southstar-status"
 pages_build_output_dir = "public"
+
+[[kv_namespaces]]
+binding = "PUSH_SUBSCRIPTIONS"
+id = "5e02c822c7704930a1ed7162cc7090e5"
+
+[vars]
+VAPID_PUBLIC_KEY = "BFw_nJ4vhOq6SRNiq_7PAW1ndRjZ_lZmv1p7HPATVNWCfrIDJ4utce_DDtRZ0RHlwnR-DFiqPIjO9cebVP3gWuU"
+CONTACT_EMAIL = "shaneyboybusiness@gmail.com"
+VAPID_PRIVATE_KEY = "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgwBSEqWvQZ-cveO0PqrEfKX9u1ceeGSs4Q88iEcj1FuGhRANCAARcP5yeL4TqukkTYqv-zwFtZ3UY2f5WZr9aexzwE1TVgn6yAyeLrXHvww7UWdER5cJ0fgxYqjyIzvXHm1T94Frl"
+GITHUB_WEBHOOK_SECRET = "Carisbrooke24"
